@@ -1,14 +1,20 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk
+# Use a more lightweight JRE image instead of JDK
+FROM eclipse-temurin:17-jre-jammy
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the executable JAR file to the container
-COPY target/demo-0.0.1-SNAPSHOT.jar /app/demo.jar
+# Add metadata labels
+LABEL app="demo-app"
 
-# Make port 8080 available to the world outside this container
+# Copy the JAR file
+COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose the port
 EXPOSE 8080
 
-# Run the JAR file
-ENTRYPOINT ["java", "-jar", "demo.jar"]
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# Run with explicit memory settings
+ENTRYPOINT ["java", "-jar", "app.jar"]
